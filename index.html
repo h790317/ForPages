@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>休克與出血性休克 - EMT-2 課程</title>
+    <style>
+        /* --- 基本樣式 --- */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            background-color: #2c3e50; /* 深藍灰色背景 */
+            font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'PingFang TC', 'Heiti TC', 'Microsoft JhengHei', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* --- 投影片容器，維持16:9比例 --- */
+        #presentation-container {
+            width: 95vw;
+            max-width: 142.22vh; /* 16:9 for height-constrained screens */
+            height: 53.44vw;    /* 16:9 for width-constrained screens */
+            max-height: 95vh;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            background: #000;
+        }
+
+        /* --- 單張投影片樣式 --- */
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease-in-out, visibility 0.5s;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 4vmin;
+            text-align: center;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            z-index: 1;
+        }
+        
+        .slide h1 { font-size: 5.5vmin; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        .slide h2 { font-size: 4.5vmin; margin-bottom: 3vmin; }
+        .slide p { font-size: 2.5vmin; line-height: 1.6; }
+        .slide ul, .slide ol { text-align: left; font-size: 2.8vmin; line-height: 1.8; width: 80%; }
+        .slide ul li, .slide ol li { margin-bottom: 1.5vmin; }
+
+        /* --- 導航箭頭 --- */
+        .nav-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 50px;
+            background-color: rgba(0, 0, 0, 0.4);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 10;
+            user-select: none;
+            transition: background-color 0.2s;
+        }
+        .nav-arrow:hover {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+        #prev-btn { left: 15px; }
+        #next-btn { right: 15px; }
+        
+        /* --- 頁碼 --- */
+        #slide-counter {
+            position: absolute;
+            bottom: 15px;
+            right: 25px;
+            color: rgba(255, 255, 255, 0.7);
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 16px;
+            z-index: 5;
+        }
+        
+        /* --- 特定投影片樣式 --- */
+        #slide1 { background-color: #c0392b; color: white; }
+        #slide1 h2 { font-size: 3.5vmin; font-weight: 400; margin-top: 1.5vmin; }
+
+        #slide2 { background-color: #f8f9fa; color: #333; }
+        #slide2 h2 { color: #2980b9; }
+        #slide2 b { color: #2980b9; }
+
+        #slide3, #slide4 { background-color: #34495e; color: white; }
+        #slide3 h2, #slide4 h2 { color: #1abc9c; }
+        .highlight { color: #f1c40f; font-weight: bold; }
+        
+        #slide5 { background-color: white; color: #333; }
+        #slide5 .columns { display: flex; justify-content: space-around; width: 100%; align-items: flex-start; }
+        #slide5 .column { width: 23%; }
+        #slide5 .column h3 { font-size: 2.8vmin; padding: 1.5vmin; color: white; border-radius: 8px; margin-top: 0;}
+        #slide5 .column ul { font-size: 2.2vmin; padding-left: 1.2em; width: 100%;}
+        #slide5 .c1-head { background-color: #c0392b; }
+        #slide5 .c2-head { background-color: #2980b9; }
+        #slide5 .c3-head { background-color: #f39c12; }
+        #slide5 .c4-head { background-color: #8e44ad; }
+        
+        #slide6 { background-color: #f2f2f2; }
+        #slide6 h2 { color: #c0392b; }
+        #slide6 p { font-size: 3.5vmin; background: rgba(0,0,0,0.05); padding: 2vmin; border-radius: 10px;}
+
+        #slide7 { background-color: white; color: #333; }
+        #slide7 table { border-collapse: collapse; width: 95%; font-size: 2vmin; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        #slide7 th, #slide7 td { border: 1px solid #ddd; padding: 1.2vmin; text-align: center; }
+        #slide7 thead { background-color: #e74c3c; color: white; font-size: 2.2vmin; }
+        #slide7 tbody tr:nth-child(even) { background-color: #f2f2f2; }
+        #slide7 .critical { color: #c0392b; font-weight: bold; }
+        
+        #slide8 { background-color: #ecf0f1; }
+        #slide8 h2 { color: #2c3e50; }
+        #slide8 code { background-color: #bdc3c7; padding: 0.2em 0.4em; border-radius: 4px; }
+        
+        #slide9 { background-color: #34495e; color: white; }
+        #slide9 h2 { color: #e67e22; }
+        #slide9 p { width: 80%;}
+        
+        #slide10 { background-color: #16a085; color: white; }
+        #slide10 ul { list-style-type: '✓  '; }
+        
+        #slide11 { background-image: url('https://images.unsplash.com/photo-1599249301258-c45413412a8f?auto=format&fit=crop&q=80&w=1740'); background-size: cover; background-position: center; }
+        #slide11 .overlay { background-color: rgba(0, 0, 0, 0.6); padding: 4vmin; border-radius: 10px; }
+
+    </style>
+</head>
+<body>
+
+    <div id="presentation-container">
+        
+        <div id="slide1" class="slide active">
+            <h1>休克的病生理機轉與處置</h1>
+            <h2>Hemorrhagic Shock Focus</h2>
+            <p>中級救護技術員 (EMT-2) 專業課程</p>
+        </div>
+
+        <div id="slide2" class="slide">
+            <h2>課程目標</h2>
+            <ol>
+                <li><b>理解</b> 休克的核心問題：「組織灌流不足」。</li>
+                <li><b>掌握</b> 休克的四大類型及其基本病生理機轉。</li>
+                <li><b>精熟</b> 出血性休克的四個分級，並能從生命徵象判斷其嚴重程度。</li>
+                <li><b>強化</b> 到院前出血性休克的系統性評估與處置能力。</li>
+                <li><b>理解</b> 「許可性低血壓」與「損傷控制復甦」等進階概念。</li>
+            </ol>
+        </div>
+
+        <div id="slide3" class="slide">
+            <h2>什麼是休克 (Shock)？</h2>
+            <p>休克不是一個疾病，而是一個症候群。</p>
+            <p>核心問題是：<br><span class="highlight" style="font-size: 1.2em;">細胞層級的氧氣供需失衡，導致組織灌流不足。</span></p>
+            <p style="font-size: 2vmin; margin-top: 3vmin;">簡單來說：身體細胞沒有得到足夠的氧氣來維持生存。</p>
+        </div>
+
+        <div id="slide4" class="slide">
+            <h2>休克的階段</h2>
+            <ol>
+                <li><b>代償期 (Compensated)</b><br><span style="font-size: 0.8em;">身體努力維持血壓。心跳變快、呼吸變快、皮膚濕冷。病人可能只是焦慮不安。</span></li>
+                <li><b>失代償期 (Decompensated)</b><br><span style="font-size: 0.8em;">代償機制失效，<span class="highlight">出現低血壓！</span>這是危急的晚期徵象。</span></li>
+                <li><b>不可逆期 (Irreversible)</b><br><span style="font-size: 0.8em;">器官衰竭，死亡即將到來。</span></li>
+            </ol>
+            <p class="highlight" style="margin-top: 2vmin;">我們的目標：在病人血壓下降前，就要辨識出休克！</p>
+        </div>
+
+        <div id="slide5" class="slide">
+            <h2>休克的四大類型</h2>
+            <div class="columns">
+                <div class="column">
+                    <h3 class="c1-head">低血容性</h3>
+                    <p><b>(Fluid Problem)</b></p>
+                    <ul>
+                        <li>水不夠了</li>
+                        <li>出血</li>
+                        <li>脫水、燒傷</li>
+                    </ul>
+                </div>
+                <div class="column">
+                    <h3 class="c2-head">心因性</h3>
+                    <p><b>(Pump Problem)</b></p>
+                    <ul>
+                        <li>馬達壞了</li>
+                        <li>心肌梗塞</li>
+                        <li>心臟衰竭</li>
+                    </ul>
+                </div>
+                <div class="column">
+                    <h3 class="c3-head">分佈性</h3>
+                    <p><b>(Pipe Problem)</b></p>
+                    <ul>
+                        <li>管路太鬆</li>
+                        <li>敗血症</li>
+                        <li>過敏、神經性</li>
+                    </ul>
+                </div>
+                <div class="column">
+                    <h3 class="c4-head">阻塞性</h3>
+                    <p><b>(Blockage Problem)</b></p>
+                    <ul>
+                        <li>管路堵住</li>
+                        <li>張力性氣胸</li>
+                        <li>心包填塞、肺栓塞</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div id="slide6" class="slide">
+            <h2>出血在哪裡？</h2>
+            <h2>"Blood on the floor and four more places"</h2>
+            <p>血灑地上，還有四處藏</p>
+            <ol style="font-size: 3.2vmin; width: 60%;">
+                <li><b>胸腔 (Chest)</b></li>
+                <li><b>腹腔 (Abdomen)</b></li>
+                <li><b>骨盆 (Pelvis)</b></li>
+                <li><b>大腿 / 長骨 (Long Bones)</b></li>
+            </ol>
+        </div>
+
+        <div id="slide7" class="slide">
+            <h2>出血性休克的四個分級</h2>
+            <table>
+                <thead>
+                    <tr><th>等級</th><th>失血量 (%)</th><th>心跳 (次/分)</th><th>血壓</th><th>呼吸 (次/分)</th><th>精神狀態</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>I</td><td>&lt; 15% (~750ml)</td><td>&lt; 100</td><td>正常</td><td>14-20</td><td>輕微焦慮</td></tr>
+                    <tr><td>II</td><td>15-30% (~1.5L)</td><td>&gt; 100</td><td>正常 / 稍降</td><td>20-30</td><td>明顯焦慮</td></tr>
+                    <tr><td>III</td><td>30-40% (~2.0L)</td><td>&gt; 120</td><td class="critical">下降</td><td>30-40</td><td>焦慮 / 混亂</td></tr>
+                    <tr><td>IV</td><td>&gt; 40% (&gt;2.0L)</td><td>&gt; 140</td><td class="critical">極低</td><td>&gt; 35</td><td>混亂 / 昏迷</td></tr>
+                </tbody>
+            </table>
+            <p style="margin-top: 2vmin; font-size: 2.2vmin;">注意：明確的 <span class="critical">低血壓</span> 要到第三級才出現！</p>
+        </div>
+
+        <div id="slide8" class="slide">
+            <h2>到院前處置流程 <code>XABCDE</code></h2>
+            <ul>
+                <li><code>X</code> <b style="color: #c0392b;">止血是第一優先！</b>外部加壓，內部靠快速後送。</li>
+                <li><code>A</code> 維持呼吸道暢通。</li>
+                <li><code>B</code> 給予高濃度氧氣，維持氧合。</li>
+                <li><code>C</code> IV建立 <span class="highlight">不應延遲後送</span>。休克病人血管難打，應在車上進行。</li>
+                <li><code>E</code> <b style="color: #2980b9;">積極保暖！</b>脫濕衣、蓋保溫毯，打破死亡四鑽。</li>
+            </ul>
+        </div>
+        
+        <div id="slide9" class="slide">
+            <h2>進階概念</h2>
+            <h2 style="margin-bottom: 2vmin;">許可性低血壓 (Permissive Hypotension)</h2>
+            <p>對於無法從外部加壓止血的軀幹創傷，維持一個剛好摸得到<span class="highlight">橈動脈</span>的血壓(SBP 80-90 mmHg)即可。</p>
+            <p style="font-size: 2vmin;">目的是避免過高的血壓沖掉剛形成的血塊，反而加劇內出血。</p>
+            
+            <h2 style="margin-top: 4vmin; margin-bottom: 2vmin;">損傷控制復甦 (Damage Control)</h2>
+            <p>到院前版本的核心就是：<br><span class="highlight">止血、保暖、快速送達創傷中心。</span></p>
+        </div>
+
+        <div id="slide10" class="slide">
+            <h2>重點總結</h2>
+            <ul>
+                <li>休克的核心是灌流不足，低血壓是晚期指標。</li>
+                <li>到院前無法解決內出血，唯一解方是「縮短現場時間」。</li>
+                <li>心跳快、呼吸快、皮膚濕冷，即使血壓正常，也要高度懷疑休克。</li>
+                <li>止血！止血！止血！並積極為病人保暖。</li>
+            </ul>
+        </div>
+        
+        <div id="slide11" class="slide">
+            <div class="overlay">
+                <h1>Q & A</h1>
+                <p>提問與討論</p>
+            </div>
+        </div>
+
+        <div id="prev-btn" class="nav-arrow">&#10094;</div>
+        <div id="next-btn" class="nav-arrow">&#10095;</div>
+        <div id="slide-counter"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const slides = document.querySelectorAll('.slide');
+            const nextBtn = document.getElementById('next-btn');
+            const prevBtn = document.getElementById('prev-btn');
+            const counter = document.getElementById('slide-counter');
+            let currentSlide = 0;
+            const totalSlides = slides.length;
+
+            function showSlide(index) {
+                slides.forEach((slide, i) => {
+                    slide.classList.remove('active');
+                    if (i === index) {
+                        slide.classList.add('active');
+                    }
+                });
+                currentSlide = index;
+                updateCounter();
+            }
+
+            function nextSlide() {
+                let next = currentSlide + 1;
+                if (next >= totalSlides) {
+                    next = 0; // Loop back to the first slide
+                }
+                showSlide(next);
+            }
+
+            function prevSlide() {
+                let prev = currentSlide - 1;
+                if (prev < 0) {
+                    prev = totalSlides - 1; // Loop to the last slide
+                }
+                showSlide(prev);
+            }
+
+            function updateCounter() {
+                counter.textContent = `${currentSlide + 1} / ${totalSlides}`;
+            }
+
+            nextBtn.addEventListener('click', nextSlide);
+            prevBtn.addEventListener('click', prevSlide);
+
+            // Add keyboard navigation
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+                    nextSlide();
+                } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+                    prevSlide();
+                }
+            });
+
+            // Initial setup
+            showSlide(0);
+        });
+    </script>
+</body>
+</html>
