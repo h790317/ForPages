@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多重性或重大創傷的評估與處置 - EMT-2 課程</title>
+    <style>
+        /* --- 基本樣式 --- */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            background-color: #333;
+            font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'PingFang TC', 'Heiti TC', 'Microsoft JhengHei', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* --- 投影片容器，維持16:9比例 --- */
+        #presentation-container {
+            width: 95vw;
+            max-width: 142.22vh; /* 16:9 for height-constrained screens */
+            height: 53.44vw;    /* 16:9 for width-constrained screens */
+            max-height: 95vh;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            background: #000;
+        }
+
+        /* --- 單張投影片樣式 --- */
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease-in-out, visibility 0.5s;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            z-index: 1;
+        }
+
+        /* --- 導航箭頭 --- */
+        .nav-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 50px;
+            background-color: rgba(0, 0, 0, 0.4);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 10;
+            user-select: none;
+            transition: background-color 0.2s;
+        }
+        .nav-arrow:hover {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+        #prev-btn {
+            left: 15px;
+        }
+        #next-btn {
+            right: 15px;
+        }
+        
+        /* --- 頁碼 --- */
+        #slide-counter {
+            position: absolute;
+            bottom: 15px;
+            right: 25px;
+            color: rgba(255, 255, 255, 0.7);
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 16px;
+            z-index: 5;
+        }
+
+        /* --- 各張投影片的特定樣式 --- */
+
+        /* Slide 1: Title */
+        #slide1 { background-color: #003366; color: white; }
+        #slide1 .content { padding: 5%; text-align: center; }
+        #slide1 h1 { font-size: 5.5vmin; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        #slide1 h2 { font-size: 4vmin; margin-top: 1.5vmin; font-weight: 400; }
+        #slide1 hr { width: 50%; margin: 3vmin auto; }
+        #slide1 p { font-size: 2.5vmin; }
+
+        /* Slide 2: Objectives */
+        #slide2 { flex-direction: row; background-color: #f8f9fa; }
+        #slide2 .title-pane { width: 40%; background: #34495e; color: white; display: flex; justify-content: center; align-items: center; height: 100%; }
+        #slide2 h2 { font-size: 5vmin; text-align: center; }
+        #slide2 .content-pane { width: 60%; padding: 4vmin; font-size: 2.4vmin; color: #333; }
+        #slide2 ul { line-height: 1.8; list-style-position: inside; padding-left: 0; }
+        #slide2 b { color: #34495e; }
+
+        /* Slide 3: Lethal Diamond */
+        #slide3 { padding: 4vmin; background: white; }
+        #slide3 h2 { font-size: 4.5vmin; color: #c0392b; text-align: center; margin-bottom: 3vmin; }
+        #slide3 .image-container { display: flex; justify-content: center; align-items: center; flex-grow: 1; }
+        #slide3 img { max-width: 90%; max-height: 55vmin; }
+        #slide3 p { font-size: 2.2vmin; color: #333; text-align: center; margin-top: 2.5vmin; }
+        
+        /* Slide 4: Golden Hour */
+        #slide4 { align-items: stretch; background: linear-gradient(135deg, #2c3e50, #4ca1af); color: white; }
+        #slide4 .text-pane { width: 50%; padding: 5vmin; box-sizing: border-box; }
+        #slide4 h2 { font-size: 5vmin; }
+        #slide4 p, #slide4 ul { font-size: 2.8vmin; line-height: 1.6; }
+        #slide4 .highlight { margin-top: 3vmin; font-weight: bold; color: #f1c40f; }
+        #slide4 .image-pane { width: 50%; display: flex; justify-content: center; align-items: center; }
+        #slide4 img { width: 65%; border-radius: 50%; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+
+        /* Slide 5: Overview */
+        #slide5 { padding: 4vmin; background-color: #ecf0f1; }
+        #slide5 h2 { text-align: center; font-size: 4.5vmin; color: #2c3e50; margin-bottom: 4vmin; }
+        #slide5 .flow-container { display: flex; justify-content: space-around; align-items: flex-start; text-align: center; width: 100%; }
+        #slide5 .flow-item { width: 20%; }
+        #slide5 .flow-box { color: white; padding: 2vmin; border-radius: 8px; font-size: 3vmin; margin-bottom: 1.5vmin; font-weight: bold; }
+        #slide5 .flow-desc { font-size: 2vmin; line-height: 1.4; color: #555; }
+        #slide5 .arrow { font-size: 5vmin; color: #7f8c8d; margin-top: 2.5vmin; }
+        #slide5 .bg-grey { background-color: #95a5a6; }
+        #slide5 .bg-red { background-color: #e74c3c; }
+        #slide5 .bg-orange { background-color: #f39c12; }
+        #slide5 .bg-blue { background-color: #3498db; }
+
+        /* Slide 6: XABCDE */
+        #slide6 { padding: 4vmin; background-color: white; }
+        #slide6 h2 { font-size: 4.5vmin; color: #c0392b; text-align: center; margin-bottom: 3vmin; }
+        #slide6 code { font-family: monospace; }
+        #slide6 .grid-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2vmin; font-size: 2vmin; text-align: center; width: 100%; }
+        #slide6 .grid-item { padding: 2vmin; border-radius: 8px; }
+        #slide6 .grid-item h3 { margin-top: 0; font-size: 2.5vmin; }
+        #slide6 .grid-item-x { background-color: #f2dede; color: #a94442; }
+        #slide6 .grid-item-a { background-color: #d9edf7; color: #31708f; }
+        #slide6 .grid-item-b { background-color: #dff0d8; color: #3c763d; }
+        #slide6 .grid-item-c { background-color: #fcf8e3; color: #8a6d3b; }
+        #slide6 .grid-item-d { background-color: #e8e8e8; color: #555; }
+        #slide6 .grid-item-e { background-color: #fae4fc; color: #763c77; }
+
+        /* Slide 7: Chest Trauma */
+        #slide7 { padding: 4vmin; background-color: #34495e; color: white; }
+        #slide7 h2 { font-size: 4.5vmin; text-align: center; margin-bottom: 3vmin; }
+        #slide7 .columns { display: flex; justify-content: space-around; align-items: center; flex-grow: 1; width: 100%; }
+        #slide7 .column { text-align: center; width: 45%; }
+        #slide7 .column h3 { font-size: 3.5vmin; }
+        #slide7 .column-tension h3 { color: #e67e22; }
+        #slide7 .column-open h3 { color: #c0392b; }
+        #slide7 .column p { font-size: 2.2vmin; line-height: 1.5; }
+        #slide7 .column .highlight { color: #f1c40f; font-weight: bold; }
+        #slide7 .divider { height: 80%; width: 1px; background-color: #7f8c8d; }
+
+        /* Slide 8: Shock */
+        #slide8 { padding: 4vmin; background-color: #fff; }
+        #slide8 h2 { font-size: 4.5vmin; text-align: center; margin-bottom: 3vmin; color: #2c3e50; }
+        #slide8 .columns { display: flex; justify-content: space-around; align-items: flex-start; width: 100%; }
+        #slide8 .column { width: 48%; font-size: 2.2vmin; }
+        #slide8 .column h3 { font-size: 3vmin; }
+        #slide8 .column-signs h3 { color: #2980b9; }
+        #slide8 .column-mgmt h3 { color: #27ae60; }
+        #slide8 ul, #slide8 ol { line-height: 1.8; padding-left: 2em; }
+        #slide8 .warning { margin-top: 1.5vmin; color: #c0392b; font-weight: bold; }
+
+        /* Slide 9: Secondary Survey */
+        #slide9 { padding: 4vmin; background-color: #ecf0f1; }
+        #slide9 h2 { font-size: 4.5vmin; text-align: center; margin-bottom: 4vmin; color: #2c3e50; }
+        #slide9 .columns { display: flex; justify-content: space-between; width: 100%; font-size: 2.2vmin; }
+        #slide9 .column { width: 32%; }
+        #slide9 .column h3 { font-size: 3vmin; }
+        #slide9 .column-headtotoe h3 { color: #2980b9; }
+        #slide9 .column-sample h3 { color: #8e44ad; }
+        #slide9 .column-packaging h3 { color: #d35400; }
+        #slide9 .column ul { padding-left: 1.5em; line-height: 1.6; }
+
+        /* Slide 10: Case 1 */
+        #slide10 { flex-direction: row; background-color: #f8f9fa; }
+        #slide10 .title-pane { width: 40%; background: #c0392b; color: white; display: flex; justify-content: center; align-items: center; height: 100%; }
+        #slide10 h2 { font-size: 5vmin; text-align: center; }
+        #slide10 .content-pane { width: 60%; padding: 3vmin; font-size: 2.2vmin; color: #333; line-height: 1.6; }
+        #slide10 h3 { font-size: 3vmin; margin-bottom: 1.5vmin; }
+        #slide10 ul { line-height: 1.7; }
+        #slide10 .discuss { margin-top: 2vmin; font-weight: bold; color: #c0392b; }
+
+        /* Slide 11: Case 1 Solution */
+        #slide11 { padding: 4vmin; background-color: #f9fbe7; }
+        #slide11 h2 { font-size: 4vmin; color: #33691e; text-align: center; margin-bottom: 3vmin; }
+        #slide11 ol { font-size: 2.5vmin; line-height: 2; padding-left: 3em; margin: 0; }
+        #slide11 .decision { text-align: center; font-size: 2.8vmin; margin-top: 3vmin; background-color: #e67e22; color: white; padding: 1.5vmin; border-radius: 5px; }
+
+        /* Slide 12: Case 2 */
+        #slide12 { flex-direction: row; background-color: #f8f9fa; }
+        #slide12 .title-pane { width: 40%; background: #2980b9; color: white; display: flex; justify-content: center; align-items: center; height: 100%; }
+        #slide12 h2 { font-size: 5vmin; text-align: center; }
+        #slide12 .content-pane { width: 60%; padding: 3vmin; font-size: 2.2vmin; color: #333; line-height: 1.6; }
+        #slide12 h3 { font-size: 3vmin; margin-bottom: 1.5vmin; }
+        #slide12 ul { line-height: 1.7; }
+        #slide12 .discuss { margin-top: 2vmin; font-weight: bold; color: #2980b9; }
+
+        /* Slide 13: Case 2 Solution */
+        #slide13 { padding: 4vmin; background-color: #e7f3fe; }
+        #slide13 h2 { font-size: 4vmin; color: #1a5276; text-align: center; margin-bottom: 3vmin; }
+        #slide13 ol { font-size: 2.5vmin; line-height: 2; padding-left: 3em; margin: 0; }
+        #slide13 .decision { text-align: center; font-size: 2.8vmin; margin-top: 3vmin; background-color: #27ae60; color: white; padding: 1.5vmin; border-radius: 5px; }
+
+        /* Slide 14: Summary */
+        #slide14 { align-items: stretch; background: linear-gradient(to right, #606c88, #3f4c6b); color: white; }
+        #slide14 .title-pane { width: 40%; display: flex; justify-content: center; align-items: center; text-align: center; font-size: 5vmin; }
+        #slide14 .content-pane { width: 60%; padding: 4vmin; font-size: 2.8vmin; display: flex; align-items: center;}
+        #slide14 ul { line-height: 2.2; list-style-type: '✓  '; padding-left: 1.5em; }
+
+        /* Slide 15: Q&A */
+        #slide15 { background-image: url('https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&q=80&w=1740'); background-size: cover; background-position: center; }
+        #slide15 .overlay { background-color: rgba(0, 51, 102, 0.7); padding: 5vmin; border-radius: 10px; text-align: center; color: white; }
+        #slide15 h1 { font-size: 8vmin; margin: 0; }
+        #slide15 p { font-size: 3vmin; margin-top: 1.5vmin; }
+
+    </style>
+</head>
+<body>
+
+    <div id="presentation-container">
+        
+        <div id="slide1" class="slide active">
+            <div class="content">
+                <h1>多重性或重大創傷</h1>
+                <h2>評估與處置</h2>
+                <hr>
+                <p>中級救護技術員 (EMT-2) 專業課程</p>
+            </div>
+        </div>
+
+        <div id="slide2" class="slide">
+            <div class="title-pane"><h2>課程目標</h2></div>
+            <div class="content-pane">
+                <ul>
+                    <li><b>建構</b> 對多重創傷病生理的系統性理解。</li>
+                    <li><b>精熟</b> 系統性創傷評估流程 (XABCDE)。</li>
+                    <li><b>強化</b> 危急創傷的辨識與即時處置能力。</li>
+                    <li><b>掌握</b> 整合性打包後送與運送中監測。</li>
+                    <li><b>培養</b> 複雜情境下的臨床決策思維。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="slide3" class="slide">
+            <h2>觀念重建：從「三角」到「四鑽」</h2>
+            <div class="image-container">
+                <img src="https://i.imgur.com/kS9Gv1G.png" alt="Lethal Diamond of Death">
+            </div>
+            <p><b>死亡四鑽 (Lethal Diamond):</b> 體溫過低、酸中毒、凝血障礙與<b>低血鈣</b>形成致命的惡性循環，是我們到院前必須極力避免的狀況。</p>
+        </div>
+
+        <div id="slide4" class="slide">
+            <div class="text-pane">
+                <h2>黃金時間 (Golden Hour)</h2>
+                <p>從傷害發生到接受確定性醫療(手術)的關鍵一小時。我們的任務是：</p>
+                <ul>
+                  <li><b>縮短現場時間</b></li>
+                  <li><b>快速評估與處置</b></li>
+                  <li><b>儘速後送至創傷中心</b></li>
+                </ul>
+                <p class="highlight">"Load & Go" 是最高指導原則！</p>
+            </div>
+            <div class="image-pane">
+              <img src="https://i.imgur.com/8x83f6f.png" alt="Golden Hour Clock">
+            </div>
+        </div>
+        
+        <div id="slide5" class="slide">
+            <h2>創傷評估流程總覽</h2>
+            <div class="flow-container">
+                <div class="flow-item">
+                    <div class="flow-box bg-grey"><b>現場評估</b></div>
+                    <p class="flow-desc">安全、機制、人數、呼叫支援</p>
+                </div>
+                <div class="arrow">&rarr;</div>
+                <div class="flow-item">
+                    <div class="flow-box bg-red"><b>初級評估</b></div>
+                    <p class="flow-desc">(X)ABCDE<br>尋找並處置致命傷</p>
+                </div>
+                <div class="arrow">&rarr;</div>
+                <div class="flow-item">
+                    <div class="flow-box bg-orange"><b>後送決策</b></div>
+                    <p class="flow-desc">Load & Go?<br>Stay & Play?</p>
+                </div>
+                <div class="arrow">&rarr;</div>
+                <div class="flow-item">
+                    <div class="flow-box bg-blue"><b>二級評估</b></div>
+                    <p class="flow-desc">(運送途中執行)<br>詳細檢查、病史</p>
+                </div>
+            </div>
+        </div>
+        
+        <div id="slide6" class="slide">
+             <h2>初級評估 (Primary Survey) - <code>XABCDE</code></h2>
+             <div class="grid-container">
+                  <div class="grid-item grid-item-x"><h3>X - 大出血控制</h3><p>立即使用止血帶、填塞、直接加壓</p></div>
+                  <div class="grid-item grid-item-a"><h3>A - 呼吸道與頸椎</h3><p>暢通呼吸道、徒手或輔助呼吸道、維持頸椎直線固定</p></div>
+                  <div class="grid-item grid-item-b"><h3>B - 呼吸</h3><p>評估速率/品質、給氧、檢查胸廓、辨識致命胸傷</p></div>
+                  <div class="grid-item grid-item-c"><h3>C - 循環</h3><p>評估脈搏(速率/強度)、膚色/溫/濕、微血管填充</p></div>
+                  <div class="grid-item grid-item-d"><h3>D - 失能</h3><p>GCS評分、瞳孔大小/對光反應、AVPU</p></div>
+                  <div class="grid-item grid-item-e"><h3>E - 暴露與保暖</h3><p>移除衣物檢查全身、使用保溫毯避免體溫過低</p></div>
+             </div>
+        </div>
+        
+        <div id="slide7" class="slide">
+            <h2>致命性胸部創傷的辨識</h2>
+            <div class="columns">
+                <div class="column column-tension">
+                    <h3>張力性氣胸</h3>
+                    <p><b>徵象：</b>極度呼吸窘迫、皮下氣腫、頸靜脈怒張(JVD)、氣管偏移(晚期)、患側呼吸音↓、低血壓。</p>
+                    <p class="highlight"><b>EMT-2 處置：</b>立即給予高濃度氧氣，快速後送。**需能辨識，為ALS準備。**</p>
+                </div>
+                <div class="divider"></div>
+                <div class="column column-open">
+                    <h3>開放性氣胸</h3>
+                    <p><b>徵象：</b>胸壁有開放性傷口、可聽見空氣吸吮聲(sucking sound)。</p>
+                    <p class="highlight"><b>EMT-2 處置：</b>立即使用<b>三面密封貼(或四面貼一角)</b>，監測轉變為張力性氣胸的可能。</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="slide8" class="slide">
+            <h2>循環問題：辨識與管理創傷性休克</h2>
+            <div class="columns">
+                <div class="column column-signs">
+                    <h3>休克的早期徵象</h3>
+                    <ul>
+                        <li>躁動不安、焦慮</li>
+                        <li>皮膚蒼白、濕冷</li>
+                        <li>脈搏細速 (Tachycardia)</li>
+                        <li>微血管填充時間 > 2秒</li>
+                    </ul>
+                    <p class="warning">**低血壓 (Hypotension) 是晚期徵象！**</p>
+                </div>
+                <div class="column column-mgmt">
+                    <h3>到院前處置核心</h3>
+                    <ol>
+                        <li><b>止血：</b>控制所有可見的外部出血。</li>
+                        <li><b>給氧：</b>維持組織灌流。</li>
+                        <li><b>保暖：</b>預防體溫過低，打破死亡四鑽。</li>
+                        <li><b>平躺：</b>必要時可抬高下肢 (視創傷情況)。</li>
+                        <li><b>快速後送：</b>確定性治療是手術。</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+        
+        <div id="slide9" class="slide">
+            <h2>二級評估與打包固定 (運送途中)</h2>
+            <div class="columns">
+                <div class="column column-headtotoe">
+                    <h3>從頭到腳檢查</h3>
+                    <p>系統性檢查身體各部位是否有 DCAP-BTLS (變形、挫傷、穿刺、燒傷、壓痛、撕裂、腫脹)。</p>
+                </div>
+                <div class="column column-sample">
+                    <h3>SAMPLE 病史</h3>
+                    <p>症狀、過敏、藥物、過去病史、上一餐、事件經過。</p>
+                </div>
+                <div class="column column-packaging">
+                    <h3>打包固定要點</h3>
+                    <ul>
+                        <li><b>脊椎固定：</b>頸圈、長背板或鏟式擔架。</li>
+                        <li><b>骨盆固定：</b>懷疑骨盆骨折時，使用骨盆帶或床單包裹。</li>
+                        <li><b>肢體固定：</b>處理危及肢體的骨折(無脈搏)，其餘可在運送中進行。</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div id="slide10" class="slide">
+            <div class="title-pane"><h2>案例研討 1</h2></div>
+            <div class="content-pane">
+                <h3>情境：工地墜落</h3>
+                <p>38歲男性工人，從約3層樓高鷹架墜落至地面。現場同事表示病人一度昏迷，現在對痛有反應。</p>
+                <p><b>理學檢查發現：</b></p>
+                <ul>
+                    <li>呼吸費力且快 (30次/分)，右胸壁有明顯反常呼吸。</li>
+                    <li>脈搏細速 (130次/分)，皮膚蒼白濕冷。</li>
+                    <li>GCS: E2V3M5=10。</li>
+                    <li>骨盆擠壓時病人劇痛。</li>
+                </ul>
+                <p class="discuss">分組討論：你的處置優先順序為何？</p>
+            </div>
+        </div>
+        
+        <div id="slide11" class="slide">
+             <h2>案例 1 處置思路</h2>
+             <ol>
+                <li><b>(X)</b> 快速掃視無立即性大出血。</li>
+                <li><b>(A)</b> 維持呼吸道暢通，手動維持頸椎穩定。</li>
+                <li><b>(B)</b> 高濃度氧氣！右胸反常呼吸指向<b>連枷胸(Flail Chest)</b>，這是危及生命的胸傷。給予正壓通氣(BVM)可能是必要的。</li>
+                <li><b>(C)</b> 休克表徵明顯，懷疑胸內出血及骨盆骨折導致的內出血。</li>
+                <li><b>(D)</b> GCS 10分，嚴重頭部創傷可能。</li>
+                <li><b>(E)</b> 快速暴露檢查，立即保暖。</li>
+             </ol>
+             <p class="decision"><b>決策：立即打包後送！</b> 使用鏟式擔架上長背板，使用骨盆帶固定骨盆，運送途中密切監測呼吸狀態。</p>
+        </div>
+
+        <div id="slide12" class="slide">
+            <div class="title-pane"><h2>案例研討 2</h2></div>
+            <div class="content-pane">
+                <h3>情境：機車對撞</h3>
+                <p>22歲男性騎士，與汽車對撞，人被拋出約5公尺。傷患清醒，主訴腹部劇痛及左大腿痛。</p>
+                <p><b>理學檢查發現：</b></p>
+                <ul>
+                    <li>呼吸淺快 (28次/分)，給予面罩氧氣中。</li>
+                    <li>脈搏 120次/分，血壓 96/60 mmHg。</li>
+                    <li>腹部僵硬，有壓痛。左股骨中段腫脹變形。</li>
+                    <li>GCS: E4V5M6=15。</li>
+                </ul>
+                <p class="discuss">分組討論：除了明顯的骨折，你最擔心的潛在傷害是什麼？如何管理？</p>
+            </div>
+        </div>
+
+        <div id="slide13" class="slide">
+            <h2>案例 2 處置思路</h2>
+            <ol>
+                <li><b>最擔心的潛在傷害：腹內出血！</b> 腹部僵硬是腹膜炎的典型徵象，高速撞擊下，肝臟、脾臟破裂風險極高。</li>
+                <li><b>處置核心：管理出血性休克。</b><br>
+                    - 維持呼吸道、高濃度氧氣。<br>
+                    - 左股骨骨折可能已造成大量(1000-1500ml)失血，使用<b>牽引式氣壓副木 (Traction Splint)</b> 固定可止血、止痛。<br>
+                    - 立即保暖，預防體溫過低。<br>
+                    - 建立大口徑IV (由EMT-2或Paramedic執行)，但<b>不應延遲後送</b>。</li>
+            </ol>
+            <p class="decision"><b>決策：同樣是 Load & Go！</b> 在現場做最少的必要處置(上頸圈、上鏟擔、上骨折固定)，快速送往創傷中心。腹內出血無法在現場解決。</p>
+        </div>
+
+        <div id="slide14" class="slide">
+            <div class="title-pane"><p>重點<br>總結</p></div>
+            <div class="content-pane">
+                <ul>
+                    <li>多重創傷處置的成功關鍵在於<b>系統性</b>與<b>速度</b>。</li>
+                    <li>永遠將 <b>XABCDE</b> 內化為直覺反應。</li>
+                    <li>辨識並優先處理<b>立即危及生命</b>的問題。</li>
+                    <li>預防<b>死亡四鑽</b>的發生比治療更重要。</li>
+                    <li><b>縮短現場停留時間</b>是給病人最好的禮物。</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div id="slide15" class="slide">
+            <div class="overlay">
+                <h1>Q & A</h1>
+                <p>提問與討論</p>
+            </div>
+        </div>
+
+        <div id="prev-btn" class="nav-arrow">&#10094;</div>
+        <div id="next-btn" class="nav-arrow">&#10095;</div>
+        <div id="slide-counter"></div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const slides = document.querySelectorAll('.slide');
+            const nextBtn = document.getElementById('next-btn');
+            const prevBtn = document.getElementById('prev-btn');
+            const counter = document.getElementById('slide-counter');
+            let currentSlide = 0;
+            const totalSlides = slides.length;
+
+            function showSlide(index) {
+                slides.forEach((slide, i) => {
+                    slide.classList.remove('active');
+                    if (i === index) {
+                        slide.classList.add('active');
+                    }
+                });
+                currentSlide = index;
+                updateCounter();
+            }
+
+            function nextSlide() {
+                let next = currentSlide + 1;
+                if (next >= totalSlides) {
+                    next = 0; // Loop back to the first slide
+                }
+                showSlide(next);
+            }
+
+            function prevSlide() {
+                let prev = currentSlide - 1;
+                if (prev < 0) {
+                    prev = totalSlides - 1; // Loop to the last slide
+                }
+                showSlide(prev);
+            }
+
+            function updateCounter() {
+                counter.textContent = `${currentSlide + 1} / ${totalSlides}`;
+            }
+
+            nextBtn.addEventListener('click', nextSlide);
+            prevBtn.addEventListener('click', prevSlide);
+
+            // Add keyboard navigation
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+                    nextSlide();
+                } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+                    prevSlide();
+                }
+            });
+
+            // Initial setup
+            showSlide(0);
+        });
+    </script>
+</body>
+</html>
