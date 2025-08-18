@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>從致命三聯症到死亡四鑽：創傷復甦觀念的演進</title>
+<style>
+    :root {
+        --slide-width: 1280px;
+        --slide-height: 720px;
+        --primary-bg: #1a1a2e;
+        --secondary-bg: #16213e;
+        --accent-color: #0f3460;
+        --text-color: #e94560;
+        --light-text: #f0f0f0;
+        --highlight-color: #ffc107;
+    }
+    body, html {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background-color: var(--primary-bg);
+        color: var(--light-text);
+        font-family: 'Segoe UI', 'Microsoft JhengHei', Arial, sans-serif;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    #presentation-container {
+        width: 100vw;
+        height: 56.25vw; /* 16:9 Aspect Ratio */
+        max-width: var(--slide-width);
+        max-height: var(--slide-height);
+        position: relative;
+        box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        background: var(--secondary-bg);
+    }
+   .slide {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.6s ease-in-out, visibility 0.6s;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 40px;
+        box-sizing: border-box;
+        text-align: center;
+    }
+   .slide.active {
+        opacity: 1;
+        visibility: visible;
+    }
+    h1, h2, h3 {
+        color: var(--text-color);
+        margin-bottom: 20px;
+    }
+    h1 { font-size: 3.5em; }
+    h2 { font-size: 2.8em; }
+    h3 { font-size: 2em; }
+    p, li {
+        font-size: 1.4em;
+        line-height: 1.6;
+        max-width: 90%;
+    }
+    ul {
+        list-style: none;
+        padding: 0;
+        text-align: left;
+    }
+    li {
+        background: rgba(255,255,255,0.05);
+        margin-bottom: 10px;
+        padding: 10px 15px;
+        border-left: 5px solid var(--text-color);
+    }
+   .nav-button {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background-color: rgba(255, 255, 255, 0.1);
+        color: white;
+        border: none;
+        padding: 15px;
+        cursor: pointer;
+        font-size: 24px;
+        z-index: 1000;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: background-color 0.3s;
+    }
+   .nav-button:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+    }
+    #prev { left: 20px; }
+    #next { right: 20px; }
+   .slide-number {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        font-size: 1em;
+        color: rgba(255,255,255,0.5);
+    }
+   .content-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        width: 100%;
+        height: 100%;
+        align-items: center;
+    }
+   .grid-item {
+        background: var(--accent-color);
+        padding: 20px;
+        border-radius: 10px;
+        height: 90%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+   .grid-item h3 {
+        margin-top: 0;
+        border-bottom: 2px solid var(--text-color);
+        padding-bottom: 10px;
+    }
+   .diagram {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        margin-top: 20px;
+    }
+   .diagram-box {
+        background: var(--accent-color);
+        padding: 15px;
+        border-radius: 8px;
+        font-size: 1.2em;
+        position: relative;
+        min-width: 150px;
+    }
+   .arrow {
+        font-size: 2em;
+        color: var(--highlight-color);
+    }
+   .diamond-layout {
+        position: relative;
+        width: 500px;
+        height: 500px;
+        margin-top: 30px;
+    }
+   .diamond-box {
+        position: absolute;
+        width: 180px;
+        height: 120px;
+        background: var(--accent-color);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.2em;
+        padding: 10px;
+        border-radius: 10px;
+    }
+    #d-top { top: 0; left: 50%; transform: translateX(-50%); }
+    #d-bottom { bottom: 0; left: 50%; transform: translateX(-50%); }
+    #d-left { left: 0; top: 50%; transform: translateY(-50%); }
+    #d-right { right: 0; top: 50%; transform: translateY(-50%); }
+   .diamond-arrow {
+        position: absolute;
+        font-size: 2.5em;
+        color: var(--highlight-color);
+    }
+    #arrow-tr { top: 20%; right: 20%; transform: rotate(45deg); }
+    #arrow-br { bottom: 20%; right: 20%; transform: rotate(135deg); }
+    #arrow-bl { bottom: 20%; left: 20%; transform: rotate(225deg); }
+    #arrow-tl { top: 20%; left: 20%; transform: rotate(315deg); }
+   .highlight {
+        color: var(--highlight-color);
+        font-weight: bold;
+    }
+   .citation {
+        font-size: 0.8em;
+        color: rgba(255,255,255,0.6);
+        margin-top: 5px;
+    }
+</style>
+</head>
+<body>
+
+<div id="presentation-container">
+    <div class="slide active" id="slide1">
+        <h1>從致命三聯症到死亡四鑽</h1>
+        <h2>創傷復甦觀念的演進與臨床實踐</h2>
+        <p style="margin-top: 50px; font-size: 1.2em;">按下左右箭頭切換投影片</p>
+    </div>
+
+    <div class="slide" id="slide2">
+        <h2>導論：理解生理崩潰的惡性循環</h2>
+        <p>在嚴重創傷與出血性休克中，患者的生理狀態會迅速惡化，形成一個自我加劇的惡性循環，最終導致死亡。數十年來，這個過程被經典的「創傷致命三聯症」模型所解釋 [1]。</p>
+        <p>然而，隨著研究深入，一個新的、更全面的模型——「死亡四鑽」——應運而生，它為現代創傷復甦策略提供了新的方向 [2, 3]。</p>
+    </div>
+
+    <div class="slide" id="slide3">
+        <h2>傳統模型：創傷致命三聯症 (Lethal Triad)</h2>
+        <ul>
+            <li><span class="highlight">低體溫 (Hypothermia):</span> 體溫低於36°C，導致凝血酵素活性下降，血小板功能受損 [2]。</li>
+            <li><span class="highlight">酸中毒 (Acidosis):</span> pH值低於7.35，因組織缺氧產生乳酸。酸性環境會改變凝血因子結構，使其失效 [2]。</li>
+            <li><span class="highlight">凝血功能障礙 (Coagulopathy):</span> 因失血、稀釋及上述兩因素共同作用，導致血液無法正常凝固，加劇出血 [4]。</li>
+        </ul>
+    </div>
+
+    <div class="slide" id="slide4">
+        <h2>三聯症的惡性循環</h2>
+        <p>這三個因素相互影響，形成一個致命的螺旋：</p>
+        <div class="diagram">
+            <div class="diagram-box">出血</div>
+            <div class="arrow">→</div>
+            <div class="diagram-box">低體溫<br>&<br>酸中毒</div>
+            <div class="arrow">→</div>
+            <div class="diagram-box">凝血功能障礙</div>
+            <div class="arrow">→</div>
+            <div class="diagram-box">更多出血...</div>
+        </div>
+        <p style="margin-top: 40px;">這個循環一旦啟動，若不迅速介入，將導致不可逆的生理衰竭。</p>
+    </div>
+
+    <div class="slide" id="slide5">
+        <h2>概念升級：失落的關鍵環節</h2>
+        <p>近年來，大量證據顯示 <span class="highlight">低血鈣 (Hypocalcemia)</span> 在創傷死亡率中扮演著獨立且關鍵的角色 [5, 3]。</p>
+        <ul>
+            <li>創傷本身就會引發低血鈣 ("trauma-induced hypocalcemia") [1, 2]。</li>
+            <li>大量輸血是治療出血的必要手段，但庫存血品中的檸檬酸鹽抗凝劑會螯合鈣離子，<span class="highlight">加劇低血鈣</span> [2, 4]。</li>
+            <li>低血鈣不僅影響凝血，還會削弱心肌收縮力，惡化休克 [2, 6]。</li>
+        </ul>
+        <p>這一發現促使傳統模型擴展，形成了「死亡四鑽」。</p>
+    </div>
+
+    <div class="slide" id="slide6">
+        <h2>新模型：創傷死亡四鑽 (Lethal Diamond)</h2>
+        <p>「死亡四鑽」更完整地描繪了全身性衰竭的過程，將低血鈣納為第四個核心支柱 [2, 7]。</p>
+        <div class="diamond-layout">
+            <div class="diamond-box" id="d-top">低體溫</div>
+            <div class="diamond-box" id="d-right">凝血障礙</div>
+            <div class="diamond-box" id="d-bottom">低血鈣</div>
+            <div class="diamond-box" id="d-left">酸中毒</div>
+            <div class="diamond-arrow" id="arrow-tr">⤮</div>
+            <div class="diamond-arrow" id="arrow-br">⤮</div>
+            <div class="diamond-arrow" id="arrow-bl">⤮</div>
+            <div class="diamond-arrow" id="arrow-tl">⤮</div>
+        </div>
+    </div>
+
+    <div class="slide" id="slide7">
+        <h2>四鑽的死亡螺旋</h2>
+        <p>低血鈣的加入，揭示了一個更複雜且更險惡的惡性循環 [1, 6]：</p>
+        <ol style="text-align: left; max-width: 80%; margin: 20px auto; font-size: 1.2em; line-height: 1.8;">
+            <li>出血導致休克，引發<span class="highlight">酸中毒</span>與<span class="highlight">低體溫</span>。</li>
+            <li>酸中毒與低體溫加劇<span class="highlight">凝血障礙</span>，導致更多出血。</li>
+            <li>大量輸血復甦，卻因檸檬酸鹽引發嚴重的<span class="highlight">低血鈣</span>。</li>
+            <li>低血鈣進一步癱瘓凝血功能，並削弱心臟，加重休克與酸中毒。</li>
+            <li><span class="highlight">迴路閉合並加速</span>，使患者迅速走向死亡。</li>
+        </ol>
+    </div>
+
+    <div class="slide" id="slide8">
+        <h2>治療對策：損害控制復甦術 (DCR)</h2>
+        <p>損害控制復甦術 (Damage Control Resuscitation) 是一套現代化的復甦策略，其核心目標是<span class="highlight">打破死亡四鑽的惡性循環</span>，而非追求生理指標的完全正常化 [8, 4, 9]。</p>
+        <p>這代表了一種從傳統「容量復甦」到「止血與功能恢復」的根本性思維轉變。</p>
+    </div>
+
+    <div class="slide" id="slide9">
+        <h2>DCR如何瓦解死亡四鑽</h2>
+        <div class="content-grid">
+            <div class="grid-item">
+                <h3>對抗 <span class="highlight">低體溫</span></h3>
+                <p>積極主動復溫：使用保溫毯、液體加溫器，將所有輸注液體加溫 [4]。</p>
+            </div>
+            <div class="grid-item">
+                <h3>對抗 <span class="highlight">凝血障礙</span></h3>
+                <p>止血性復甦：平衡性輸血 (1:1:1 比例的紅血球、血漿、血小板)，並早期使用傳明酸 (TXA) [4]。</p>
+            </div>
+            <div class="grid-item">
+                <h3>對抗 <span class="highlight">酸中毒</span></h3>
+                <p>恢復灌流：容許性低血壓 (避免沖脫血栓)，限制晶體溶液，優先使用平衡溶液 [8, 4]。</p>
+            </div>
+            <div class="grid-item">
+                <h3>對抗 <span class="highlight">低血鈣</span></h3>
+                <p>主動補充鈣劑：在開始輸血後，根據指引規律給予靜脈注射鈣劑 (如葡萄糖酸鈣) [4, 10]。</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" id="slide10">
+        <h2>結論：從概念演進到臨床成效</h2>
+        <p>從「致命三聯症」到「死亡四鑽」的演進，代表了我們對創傷生理學更深刻的理解。</p>
+        <p>這一概念升級，特別是對<span class="highlight">低血鈣</span>的重視，直接推動了DCR策略的完善，將<span class="highlight">主動補鈣</span>納入標準流程，顯著提升了嚴重創傷患者的存活機會 [2, 4]。</p>
+        <p>清晰的理論框架，是臨床實踐進步的基石。</p>
+    </div>
+
+    <button class="nav-button" id="prev">&#10094;</button>
+    <button class="nav-button" id="next">&#10095;</button>
+    <div class="slide-number" id="slide-counter"></div>
+</div>
+
+<script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    const slideCounter = document.getElementById('slide-counter');
+
+    function showSlide(index) {
+        slides.forEach((slide, i) => {
+            slide.classList.remove('active');
+            if (i === index) {
+                slide.classList.add('active');
+            }
+        });
+        currentSlide = index;
+        updateCounter();
+    }
+
+    function updateCounter() {
+        slideCounter.textContent = `${currentSlide + 1} / ${totalSlides}`;
+    }
+
+    document.getElementById('next').addEventListener('click', () => {
+        let nextSlide = currentSlide + 1;
+        if (nextSlide >= totalSlides) {
+            nextSlide = 0;
+        }
+        showSlide(nextSlide);
+    });
+
+    document.getElementById('prev').addEventListener('click', () => {
+        let prevSlide = currentSlide - 1;
+        if (prevSlide < 0) {
+            prevSlide = totalSlides - 1;
+        }
+        showSlide(prevSlide);
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight') {
+            document.getElementById('next').click();
+        } else if (e.key === 'ArrowLeft') {
+            document.getElementById('prev').click();
+        }
+    });
+
+    showSlide(0);
+</script>
+
+</body>
+</html>
