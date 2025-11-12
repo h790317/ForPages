@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cynokit (氰化物解毒劑) 完整簡報</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Professional Blue & Neutral Gray -->
+    <!-- Application Structure Plan: The application is structured as a linear slideshow with a fixed 16:9 aspect ratio, ideal for presentations. Navigation is handled by 'previous' and 'next' buttons, along with indicator dots at the bottom for quick access to any slide. Each slide is a self-contained content block, breaking down complex information into digestible chunks. This structure guides the user through the information sequentially, starting from a high-level overview and progressively delving into specifics like mechanism, dosage, and comparisons. This is more suitable for teaching or presenting than the previous tab-based design, which was optimized for quick information retrieval. -->
+    <!-- Visualization & Content Choices: 1. Mechanism Animation: The CSS animation for the chemical reaction is preserved but placed on its own dedicated slide to serve as a powerful visual aid during a presentation. 2. Comparison Chart: The Chart.js doughnut chart is used on a slide to visually compare the component complexity of Cynokit vs. the traditional kit, making the point instantly clear. 3. Comparison Table: The detailed comparison is presented in a table on the following slide, formatted for readability in a 16:9 layout. 4. Care Flow: The post-treatment care steps are presented as a numbered list with icons, which is cleaner and more visually appealing for a slide format than the previous vertical line design. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #e5e7eb;
+        }
+        .slide-container {
+            aspect-ratio: 16 / 9;
+            position: relative;
+            overflow: hidden;
+        }
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transition: opacity 0.6s ease-in-out;
+            opacity: 0;
+            visibility: hidden;
+        }
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .nav-dot {
+            transition: background-color 0.3s ease;
+        }
+        .chart-container-slide {
+            position: relative;
+            width: 90%;
+            height: 70%;
+            max-width: 450px;
+        }
+
+        .mechanism-animation-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .molecule, .plus-sign, .arrow-sign {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2vw;
+            color: white;
+            transform: translate(-50%, -50%);
+        }
+        
+        .molecule {
+            border-radius: 50%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .plus-sign, .arrow-sign {
+             color: #4b5563;
+        }
+
+        .hydroxocobalamin {
+            width: 15vmin;
+            height: 15vmin;
+            background-color: #ef4444;
+            z-index: 10;
+            animation: hydroxocobalamin-anim 6s infinite;
+        }
+        .cyanide {
+            width: 9vmin;
+            height: 9vmin;
+            background-color: #3b82f6;
+            animation: cyanide-anim 6s infinite;
+        }
+        .cyanocobalamin {
+            width: 18vmin;
+            height: 18vmin;
+            background-color: #8b5cf6;
+            opacity: 0;
+            animation: cyanocobalamin-anim 6s infinite;
+        }
+        .plus-sign {
+            font-size: 6vmin;
+            animation: plus-anim 6s infinite;
+        }
+        .arrow-sign {
+            font-size: 7vmin;
+            opacity: 0;
+            animation: arrow-anim 6s infinite;
+        }
+        
+        @keyframes hydroxocobalamin-anim {
+            0%, 20% { transform: translate(calc(-50% - 15vmin), -50%) scale(1); }
+            10% { transform: translate(calc(-50% - 15vmin), -50%) scale(1.05); }
+            30%, 100% { transform: translate(calc(-50% - 15vmin), -50%) scale(1); }
+        }
+        @keyframes cyanide-anim {
+            0% { transform: translate(calc(-50% + 15vmin), -50%) scale(0.8); opacity: 1; }
+            50% { transform: translate(calc(-50% - 5vmin), -50%) scale(1); opacity: 1; }
+            66% { transform: translate(calc(-50% - 5vmin), -50%) scale(0); opacity: 0; }
+            67%, 100% { transform: translate(calc(-50% + 15vmin), -50%); opacity: 0; }
+        }
+        @keyframes plus-anim {
+            0%, 65% { transform: translate(-50%, -50%); opacity: 1; }
+            80%, 100% { transform: translate(-50%, -50%); opacity: 0; }
+        }
+        @keyframes arrow-anim {
+            0%, 80% { opacity: 0; transform: translate(-50%, -50%); }
+            95%, 100% { transform: translate(-50%, -50%); opacity: 1; }
+        }
+        @keyframes cyanocobalamin-anim {
+            0%, 66% { opacity: 0; transform: translate(calc(-50% + 15vmin), -50%) scale(0); }
+            80% { opacity: 1; transform: translate(calc(-50% + 15vmin), -50%) scale(1.1); }
+            100% { opacity: 1; transform: translate(calc(-50% + 15vmin), -50%) scale(1); }
+        }
+
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-6xl">
+        <div class="slide-container bg-white rounded-lg shadow-2xl">
+            <button id="prevBtn" class="absolute top-1/2 left-2 md:left-4 -translate-y-1/2 z-20 bg-gray-800 bg-opacity-50 text-white rounded-full w-10 h-10 md:w-12 md:h-12 flex items-center justify-center hover:bg-opacity-75 transition">&#10094;</button>
+            <button id="nextBtn" class="absolute top-1/2 right-2 md:right-4 -translate-y-1/2 z-20 bg-gray-800 bg-opacity-50 text-white rounded-full w-10 h-10 md:w-12 md:h-12 flex items-center justify-center hover:bg-opacity-75 transition">&#10095;</button>
+
+            <!-- Slide 1: Title -->
+            <div class="slide active flex flex-col items-center justify-center text-center p-8 bg-gradient-to-br from-blue-50 to-indigo-100">
+                <h1 class="text-4xl md:text-6xl font-bold text-blue-800">Cynokit®</h1>
+                <p class="text-2xl md:text-3xl text-gray-700 mt-4">(Hydroxocobalamin)</p>
+                <p class="text-lg md:text-xl text-gray-600 mt-8">氰化物中毒解毒劑專業簡報</p>
+            </div>
+
+            <!-- Slide 2: Overview -->
+            <div class="slide p-8 md:p-12 flex flex-col justify-center">
+                <h2 class="text-3xl md:text-4xl font-bold text-blue-700 mb-6">總覽：什麼是 Cynokit？</h2>
+                <p class="text-lg md:text-xl text-gray-700 leading-relaxed max-w-4xl">
+                    Cynokit 是一種專門用於治療<strong class="text-red-600">已知或疑似氰化物中毒</strong>的緊急解毒劑。它能快速中和體內的氰化物，恢復細胞正常的氧氣利用功能，是現代急救醫學的首選藥物之一。
+                </p>
+                <div class="mt-8 p-6 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+                    <h3 class="font-bold text-xl md:text-2xl mb-2">主要適應症</h3>
+                    <ul class="list-disc list-inside space-y-2 text-lg text-gray-700">
+                        <li>工業事故或化學攻擊造成的確診中毒。</li>
+                        <li>火災現場吸入濃煙後，出現嚴重中毒症狀的疑似患者。</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Slide 3: Fire Risk Intro -->
+            <div class="slide p-8 md:p-12 flex flex-col justify-center">
+                <h2 class="text-3xl md:text-4xl font-bold text-red-700 mb-6">火災的隱形殺手：氰化物 (HCN)</h2>
+                <p class="text-lg md:text-xl text-gray-700 mb-6">現代建築火災中，劇毒的氰化氫氣體主要來自<strong class="text-red-600">含氮物質</strong>的不完全燃燒，與一氧化碳並列為濃煙的兩大殺手。</p>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                    <div class="bg-red-50 p-4 rounded-lg"><span class="text-4xl">🛋️</span><p class="mt-2 font-semibold">沙發泡棉</p></div>
+                    <div class="bg-red-50 p-4 rounded-lg"><span class="text-4xl">🔌</span><p class="mt-2 font-semibold">電線外皮</p></div>
+                    <div class="bg-red-50 p-4 rounded-lg"><span class="text-4xl">🧱</span><p class="mt-2 font-semibold">地毯尼龍</p></div>
+                    <div class="bg-red-50 p-4 rounded-lg"><span class="text-4xl">👕</span><p class="mt-2 font-semibold">人造纖維</p></div>
+                </div>
+                 <p class="text-center mt-8 text-lg text-gray-600">幾乎所有室內火災的濃煙都含有高濃度氰化物。</p>
+            </div>
+
+            <!-- Slide 4: Civilian Risk -->
+            <div class="slide p-8 md:p-12 flex flex-col justify-center">
+                <h2 class="text-3xl md:text-4xl font-bold text-blue-700 mb-6">中毒風險 (一)：火災受困民眾</h2>
+                <div class="flex items-center bg-blue-50 p-6 rounded-lg">
+                    <div class="text-6xl mr-6">🏃‍♂️</div>
+                    <div>
+                        <p class="text-lg md:text-xl text-gray-800">
+                            在封閉空間濃煙吸入的重症傷患中，合併有臨床意義的氰化物中毒比例極高，是造成快速昏迷與死亡的關鍵因素。
+                        </p>
+                        <p class="text-4xl font-bold text-blue-600 mt-4">約 30% - 70%</p>
+                        <p class="text-sm text-gray-600">(綜合多項國際研究數據)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 5: Firefighter Risk -->
+            <div class="slide p-8 md:p-12 flex flex-col justify-center">
+                <h2 class="text-3xl md:text-4xl font-bold text-blue-700 mb-6">中毒風險 (二)：消防人員</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-green-50 p-6 rounded-lg">
+                        <h3 class="font-bold text-xl text-green-800 flex items-center"><span class="text-3xl mr-3">✅</span>急性中毒風險低</h3>
+                        <p class="mt-2 text-lg text-gray-700">在正確穿戴空氣呼吸器(SCBA)的狀況下，可有效防護，急性中毒機率遠低於民眾。</p>
+                    </div>
+                    <div class="bg-yellow-50 p-6 rounded-lg">
+                        <h3 class="font-bold text-xl text-yellow-800 flex items-center"><span class="text-3xl mr-3">⚠️</span>慢性暴露風險高</h3>
+                        <p class="mt-2 text-lg text-gray-700">火勢撲滅後的<strong class="text-red-600">殘火處理階段</strong>，若脫下裝備，仍會吸入陰燃物質釋出的低劑量毒物，造成長期健康危害。</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 6: When to Use -->
+            <div class="slide p-8 md:p-12 flex flex-col justify-center">
+                <h2 class="text-3xl md:text-4xl font-bold text-red-700 mb-6">使用時機：基於臨床的緊急判斷</h2>
+                <p class="text-lg md:text-xl text-gray-700 mb-6">不需等待實驗室確認，當患者出現以下任何嚴重症狀時，應立即考慮給藥：</p>
+                <div class="grid grid-cols-2 gap-6 text-center">
+                    <div class="bg-red-50 p-4 rounded-lg"><span class="text-4xl md:text-5xl">🧠</span><p class="mt-2 font-semibold text-lg md:text-xl">突然昏迷或癲癇</p></div>
+                    <div class="bg-red-50 p-4 rounded-lg"><span class="text-4xl md:text-5xl">❤️</span><p class="mt-2 font-semibold text-lg md:text-xl">心搏停止或休克</p></div>
+                    <div class="bg-red-50 p-4 rounded-lg"><span class="text-4xl md:text-5xl">💨</span><p class="mt-2 font-semibold text-lg md:text-xl">呼吸抑制或停止</p></div>
+                    <div class="bg-red-50 p-4 rounded-lg"><span class="text-4xl md:text-5xl">📉</span><p class="mt-2 font-semibold text-lg md:text-xl">生命徵象不穩</p></div>
+                </div>
+            </div>
+
+            <!-- Slide 7: Mechanism Text -->
+            <div class="slide p-8 md:p-12 flex flex-col justify-center">
+                <h2 class="text-3xl md:text-4xl font-bold text-blue-700 mb-6">作用機轉：螯合與解毒</h2>
+                 <p class="text-lg md:text-xl text-gray-700 leading-relaxed max-w-4xl">
+                    Cynokit 的主成分<strong class="text-red-600">羥鈷胺 (Hydroxocobalamin)</strong>，其分子中心的鈷離子對氰化物有極高的親和力。<br><br>它能像磁鐵一樣，直接、快速地與血液中的氰化物結合，形成穩定無毒的<strong class="text-purple-600">維生素B12 (Cyanocobalamin)</strong>，然後安全地從尿液中排出，從而解除毒性。
+                </p>
+            </div>
+            
+            <!-- Slide 8: Mechanism Animation -->
+            <div class="slide p-8 md:p-12 flex flex-col items-center justify-center bg-gray-50">
+                <h2 class="text-2xl md:text-3xl font-bold text-blue-700 absolute top-8">解毒過程視覺化</h2>
+                <div class="mechanism-animation-container">
+                    <div class="molecule hydroxocobalamin flex-col"><span>羥鈷胺</span><span class="text-xs">(藥物)</span></div>
+                    <div class="plus-sign">+</div>
+                    <div class="molecule cyanide flex-col"><span>氰化物</span><span class="text-xs">(毒物)</span></div>
+                    <div class="arrow-sign">→</div>
+                    <div class="molecule cyanocobalamin flex-col"><span>維生素B12</span><span class="text-xs">(無毒排出)</span></div>
+                </div>
+            </div>
+            
+            <!-- Slide 9: Dosage -->
+            <div class="slide p-8 md:p-12 flex flex-col justify-center">
+                 <h2 class="text-3xl md:text-4xl font-bold text-blue-700 mb-8">静脈輸注劑量</h2>
+                 <div class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-gray-100 p-6 rounded-lg">
+                        <h3 class="font-bold text-2xl md:text-3xl mb-4">成人</h3>
+                        <p class="text-lg md:text-xl"><strong class="text-blue-600 text-2xl">起始劑量：</strong> 5 公克 (g)</p>
+                        <p class="text-sm mt-2">15分鐘內輸注完畢。</p>
+                        <p class="text-lg md:text-xl mt-4"><strong class="text-blue-600 text-2xl">重複劑量：</strong> 5 公克 (g)</p>
+                         <p class="text-sm mt-2">若症狀持續或復發可追加。</p>
+                    </div>
+                    <div class="bg-gray-100 p-6 rounded-lg">
+                         <h3 class="font-bold text-2xl md:text-3xl mb-4">兒童</h3>
+                         <p class="text-lg md:text-xl"><strong class="text-blue-600 text-2xl">起始劑量：</strong> 70 mg/kg</p>
+                         <p class="text-sm mt-2">(最大不超過 5g)</p>
+                         <p class="text-lg md:text-xl mt-4"><strong class="text-blue-600 text-2xl">重複劑量：</strong> 70 mg/kg</p>
+                         <p class="text-sm mt-2">若需要可追加 (最大不超過 5g)。</p>
+                    </div>
+                 </div>
+            </div>
+            
+             <!-- Slide 10: Common Reactions -->
+             <div class="slide p-8 md:p-12 flex flex-col justify-center">
+                <h2 class="text-3xl md:text-4xl font-bold text-yellow-700 mb-6">注意事項：常見反應</h2>
+                <p class="text-lg md:text-xl text-gray-700 mb-6">以下是常見且預期中的良性反應，應事先告知患者與家屬以減少疑慮。</p>
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="bg-red-100 p-4 rounded-lg text-center"><span class="text-4xl md:text-5xl">💧</span><p class="mt-2 font-semibold text-lg md:text-xl">尿液呈深紅色</p><p class="text-sm">可能持續數週</p></div>
+                    <div class="bg-red-100 p-4 rounded-lg text-center"><span class="text-4xl md:text-5xl">😊</span><p class="mt-2 font-semibold text-lg md:text-xl">皮膚暫時泛紅</p><p class="text-sm">藥物顏色所致</p></div>
+                    <div class="bg-yellow-100 p-4 rounded-lg text-center"><span class="text-4xl md:text-5xl">📈</span><p class="mt-2 font-semibold text-lg md:text-xl">血壓暫時升高</p><p class="text-sm">輸注期間常見</p></div>
+                    <div class="bg-yellow-100 p-4 rounded-lg text-center"><span class="text-4xl md:text-5xl">🤢</span><p class="mt-2 font-semibold text-lg md:text-xl">噁心、頭痛</p><p class="text-sm">其他可能反應</p></div>
+                </div>
+            </div>
+
+             <!-- Slide 11: Potential Risks -->
+             <div class="slide p-8 md:p-12 flex flex-col justify-center">
+                <h2 class="text-3xl md:text-4xl font-bold text-red-700 mb-6">注意事項：潛在風險</h2>
+                <div class="space-y-6">
+                    <div class="flex items-start"><div class="flex-shrink-0 text-3xl mr-4">🚨</div><div><h3 class="font-semibold text-xl md:text-2xl">過敏反應</h3><p class="text-lg text-gray-600">雖然罕見，但仍需警惕過敏性休克的可能。</p></div></div>
+                    <div class="flex items-start"><div class="flex-shrink-0 text-3xl mr-4">🔬</div><div><h3 class="font-semibold text-xl md:text-2xl">干擾實驗室檢測</h3><p class="text-lg text-gray-600">藥物的深紅色會影響比色法檢測，建議給藥前先抽血。</p></div></div>
+                </div>
+            </div>
+
+            <!-- Slide 12: Chart Comparison -->
+            <div class="slide p-8 md:p-12 flex flex-col items-center justify-center">
+                 <h2 class="text-3xl md:text-4xl font-bold text-blue-700 mb-6 text-center">藥物比較：組成複雜度</h2>
+                 <div class="chart-container-slide"><canvas id="antidoteChart"></canvas></div>
+            </div>
+
+            <!-- Slide 13: Table Comparison -->
+            <div class="slide p-8 md:p-12 flex flex-col justify-center">
+                <h2 class="text-3xl md:text-4xl font-bold text-blue-700 mb-4">Cynokit vs. 傳統解毒套組</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="text-lg bg-gray-100"><tr><th class="p-4">特性</th><th class="p-4 text-blue-600">Cynokit (羥鈷胺)</th><th class="p-4 text-red-600">傳統解毒套組</th></tr></thead>
+                        <tbody class="text-lg">
+                            <tr class="border-b"><td class="p-4 font-semibold">作用機制</th><td class="p-4">直接結合</td><td class="p-4">誘導變性血紅素血症</td></tr>
+                            <tr class="border-b bg-gray-50"><td class="p-4 font-semibold">對攜氧能力影響</th><td class="p-4">無影響</td><td class="p-4">降低</td></tr>
+                            <tr class="border-b"><td class="p-4 font-semibold">對血壓影響</th><td class="p-4">短暫升高</td><td class="p-4">可能導致嚴重低血壓</td></tr>
+                            <tr class="border-b bg-gray-50"><td class="p-4 font-semibold">用於濃煙吸入</th><td class="p-4"><strong>首選</strong></td><td class="p-4"><strong>相對禁忌</strong></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+             <!-- Slide 14: Aftercare -->
+             <div class="slide p-8 md:p-12 flex flex-col justify-center">
+                <h2 class="text-3xl md:text-4xl font-bold text-blue-700 mb-6">後續照護與監測</h2>
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="flex items-center bg-gray-100 p-4 rounded-lg"><span class="text-3xl mr-4">💓</span><div><strong class="block">生命徵象監測</strong><span>心率、血壓、血氧</span></div></div>
+                    <div class="flex items-center bg-gray-100 p-4 rounded-lg"><span class="text-3xl mr-4">🩸</span><div><strong class="block">實驗室追蹤</strong><span>血氣分析、乳酸濃度</span></div></div>
+                    <div class="flex items-center bg-gray-100 p-4 rounded-lg"><span class="text-3xl mr-4">💨</span><div><strong class="block">支持性療法</strong><span>提供100%氧氣、呼吸支持</span></div></div>
+                    <div class="flex items-center bg-gray-100 p-4 rounded-lg"><span class="text-3xl mr-4">🚿</span><div><strong class="block">移除污染源</strong><span>脫離環境、清洗皮膚</span></div></div>
+                </div>
+            </div>
+
+            <!-- Slide 15: Summary -->
+            <div class="slide flex flex-col items-center justify-center text-center p-8 bg-gradient-to-br from-blue-800 to-indigo-900 text-white">
+                <h2 class="text-4xl md:text-5xl font-bold">總結</h2>
+                <p class="text-xl md:text-2xl mt-6 max-w-3xl leading-relaxed">
+                    Cynokit (羥鈷胺) 以其<strong class="text-yellow-300">作用迅速、安全性高、使用簡便</strong>的優勢，成為了現代處理氰化物中毒，特別是濃煙吸入中毒事件的<strong class="text-yellow-300">標準首選藥物</strong>。
+                </p>
+                <p class="mt-8 text-lg">簡報結束</p>
+            </div>
+        </div>
+        
+        <div id="dot-container" class="flex justify-center space-x-3 mt-4"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const slides = document.querySelectorAll('.slide');
+            const nextBtn = document.getElementById('nextBtn');
+            const prevBtn = document.getElementById('prevBtn');
+            const dotContainer = document.getElementById('dot-container');
+            let currentSlide = 0;
+
+            function createDots() {
+                slides.forEach((_, i) => {
+                    const dot = document.createElement('button');
+                    dot.classList.add('nav-dot', 'w-3', 'h-3', 'rounded-full');
+                    dot.addEventListener('click', () => { showSlide(i); });
+                    dotContainer.appendChild(dot);
+                });
+            }
+
+            function updateDots() {
+                const dots = document.querySelectorAll('.nav-dot');
+                dots.forEach((dot, i) => {
+                    dot.classList.toggle('bg-gray-800', i === currentSlide);
+                    dot.classList.toggle('bg-gray-400', i !== currentSlide);
+                });
+            }
+            
+            function showSlide(n) {
+                slides[currentSlide].classList.remove('active');
+                currentSlide = (n + slides.length) % slides.length;
+                slides[currentSlide].classList.add('active');
+                updateDots();
+            }
+
+            nextBtn.addEventListener('click', () => { showSlide(currentSlide + 1); });
+            prevBtn.addEventListener('click', () => { showSlide(currentSlide - 1); });
+            
+            document.addEventListener('keydown', (e) => {
+                if(e.key === 'ArrowRight') {
+                    showSlide(currentSlide + 1);
+                } else if (e.key === 'ArrowLeft') {
+                    showSlide(currentSlide - 1);
+                }
+            });
+
+            createDots();
+            showSlide(0);
+
+            // Chart rendering logic needs to check if the chart slide is active
+            // to prevent rendering a chart that isn't visible yet.
+            // However, for simplicity in this single-file script, we'll initialize it once.
+            // A more complex setup might initialize the chart only when its slide becomes active.
+            const ctx = document.getElementById('antidoteChart');
+            if (ctx) {
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Cynokit (1 種成分)', '傳統解毒套組 (3 種成分)'],
+                        datasets: [{
+                            data: [1, 3],
+                            backgroundColor: ['rgba(59, 130, 246, 0.8)', 'rgba(239, 68, 68, 0.8)'],
+                            borderColor: ['#ffffff'],
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { font: { size: 14 } } },
+                            tooltip: { callbacks: { label: (context) => `${context.label}: ${context.raw} 種成分` } }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
